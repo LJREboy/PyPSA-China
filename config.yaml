@@ -2,13 +2,13 @@
 #
 # SPDX-License-Identifier: CC0-1.0
 
-version: 0701.1H.8
+version: 0710.4H.4
 logging_level: INFO
 foresight: "myopic"
 
 # 单节点设置 - 如果为true，将只保留指定省份的节点
 using_single_node: True
-single_node_province: "Shandong"  # 当single_node为true时，指定要保留的省份
+single_node_province: "Anhui"  # 当single_node为true时，指定要保留的省份
 
 results_dir: 'results/'
 summary_dir: 'summary/'
@@ -17,17 +17,21 @@ mem_per_thread: 15000
 
 tmin: '-01-01 00:00'
 tmax: '-12-31 23:00'
-freq: '1h'
+freq: '4h'
 
-add_aluminum: True
-iterative_optimization: False
+add_aluminum: False
+iterative_optimization: True
 aluminum_commitment: False # keep False for iterative optimization
-aluminum_max_iterations: 2  # 最大迭代次数
-aluminum_convergence_tolerance: 0.01  # 收敛阈值（1%）
+aluminum_max_iterations: 5
+aluminum_convergence_tolerance: 0.01
+
+# LS parameters
+products_load_shedding: True
+LS_scenario: 3  # 切负荷问题场景编号: 1:基准情况；2：简单切负荷；3：考虑产业链协同的切负荷
 
 scenario:
   line_limits: [ 'opt' ]
-  pathway: ['linear2050']
+  pathway: ['allreduction']
   topology: "current+Neighbor" # "current" or "FCG" or "current+FCG" or "current+Neighbor"
   planning_horizons:
     - 2020
@@ -55,6 +59,16 @@ scenario:
       '2035': 0.4
       '2040': 0.6
       '2045': 0.8
+      '2050': 1.0
+      '2055': 1.0
+      '2060': 1.0
+    allreduction:
+      '2020': 0.8
+      '2025': 0.9
+      '2030': 1.0
+      '2035': 1.0
+      '2040': 1.0
+      '2045': 1.0
       '2050': 1.0
       '2055': 1.0
       '2060': 1.0
@@ -91,7 +105,7 @@ solving:
     track_iterations: false
     min_iterations: 4
     max_iterations: 6
-    skip_iterations: false
+    skip_iterations: true # LS单节点，因此跳过迭代
     formulation: kirchhoff
     load_shedding: false
     noisy_costs: false
@@ -101,16 +115,25 @@ solving:
 
 aluminum:
   al_demand_ratio: 0.07  # aluminum demand, 7% load
-  al_excess_rate:
-    "2020": 0.05
-    "2025": 0.05
-    "2030": 0.30
-    "2035": 0.50
-    "2040": 0.50
-    "2045": 0.50
-    "2050": 0.50
-    "2055": 0.50
-    "2060": 0.50
+  al_excess_rate: # aluminum excess rate
+    # '2020': 0.00
+    # '2025': 0.00
+    # '2030': 0.30
+    # '2035': 0.40
+    # '2040': 0.50
+    # '2045': 0.50
+    # '2050': 0.50
+    # '2055': 0.40
+    # '2060': 0.30
+    '2020': 0.00
+    '2025': 0.00
+    '2030': 0.00 
+    '2035': 0.00 
+    '2040': 0.00  
+    '2045': 0.00  
+    '2050': 0.00  
+    '2055': 0.00  
+    '2060': 0.00  
 
   
   # Electrolyzer costs
@@ -167,14 +190,13 @@ add_methanation: True
 
 existing_infrastructure: ['coal','CHP coal', 'CHP gas', 'OCGT','solar', 'solar thermal', 'onwind', 'offwind','coal boiler','ground heat pump','nuclear']
 
-bus_suffix: [""," central heat"," decentral heat"," gas"," coal"," aluminum"]
-bus_carrier: {
+bus_suffix: [""," central heat"," decentral heat"," gas"," coal"] # 把aluminum删去
+bus_carrier: { # 把aluminum删去
     "": "AC",
     " central heat": "heat",
     " decentral heat": "heat",
     " gas": "gas",
     " coal": "coal",
-    " aluminum": "aluminum",
 }
 
 Techs:
@@ -303,6 +325,15 @@ plotting:
   energy_max: 25000.
   energy_min: 0.
   energy_threshold: 50.
+
+  # 新增多年份绘图参数
+  multi_year_plot:
+  enabled: true
+  figure_width: 16
+  figure_height: 10
+  x_label_rotation: 45
+  legend_columns: 4
+
   loads: ['electricity', 'decentral heat', 'central heat']
   vre_techs: [ "onwind", "offwind", "solar"]
   conv_techs: [ "gas", "gas-heat", "gas-AC", "AC-gas", "coal", "coal-AC","solar thermal","AC-heat","AC-AC","stations-AC","uranium", "H2-AC", "H2-gas",]

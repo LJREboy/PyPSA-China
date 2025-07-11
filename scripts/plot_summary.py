@@ -38,6 +38,8 @@ technologies, and handles data aggregation and visualization.
 
 import os
 import logging
+
+from numpy import NAN
 from _helpers import configure_logging
 
 import pandas as pd
@@ -141,6 +143,23 @@ preferred_order = pd.Index(
         "aluminum storage",
     ]
 )
+ # Function to safely get colors for technologies, assigning defaults if missing
+def get_colors_safe(config, tech_list):
+    """安全获取技术颜色，为缺失的技术分配默认颜色"""
+    colors = []
+    default_colors = ['#808080', '#A0A0A0', '#606060', '#C0C0C0', '#909090']  # 默认灰色系
+    default_index = 0
+        
+    for tech in tech_list:
+                if tech in config['plotting']['tech_colors']:
+                    colors.append(config['plotting']['tech_colors'][tech])
+                else:
+                    # 为缺失的技术分配默认颜色
+                    colors.append(default_colors[default_index % len(default_colors)])
+                    default_index += 1
+                    print(f"Warning: No color defined for technology '{tech}', using default color")
+            
+    return colors   
 
 def plot_costs(infn, config, fn=None):
     """
@@ -160,6 +179,9 @@ def plot_costs(infn, config, fn=None):
 
     # Aggregate costs by technology
     df = cost_df.groupby(cost_df.index.get_level_values(2)).sum()
+
+    ## LS:将所有含有"products"的技术汇总为一个类别
+    df = df.groupby(df.index.map(lambda x: "Industrial products" if "products" in x else x)).sum()
 
     # Convert to billions
     df = df/1e9
@@ -200,7 +222,7 @@ def plot_costs(infn, config, fn=None):
         kind="bar",
         ax=ax,
         stacked=True,
-        color=[config['plotting']['tech_colors'][i] for i in available_colors],
+        color=get_colors_safe(config, new_index),
     )
 
     # Format legend
@@ -284,7 +306,7 @@ def plot_energy(infn, config, fn=None):
         kind="bar",
         ax=ax,
         stacked=True,
-        color=[config['plotting']['tech_colors'][i] for i in available_colors],
+        color=get_colors_safe(config, new_index),
     )
 
     # Format legend
@@ -333,3 +355,4 @@ if __name__ == "__main__":
             raise RuntimeError(f"plotting function for {summary} has not been defined")
         func(os.path.join(paths[0], f"{summary}.csv"), config, out[summary_i])
         summary_i = summary_i + 1
+
