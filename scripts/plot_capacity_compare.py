@@ -208,8 +208,7 @@ if __name__ == "__main__":
         
         # 设置默认输出路径
         output_dir = Path("results/comparison_results/plots")
-        timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-        output_file = str(output_dir / f"capacity_comparison_{timestamp}.png")
+        output_file = str(output_dir / f"capacity_comparison.png")
     
     try:
         plot_capacity_compare(

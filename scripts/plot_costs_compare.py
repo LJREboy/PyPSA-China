@@ -84,18 +84,45 @@ def generate_yearly_comparison_plots(name_base, name_comp1, name_comp2, output_d
     name_comp1_plot = "Case 2"
     name_comp2_plot = "Case 3"
 
-    # 处理两个子图的绘制（代码保持不变）
+    # 保存 Case 1 → Case 2 的数据到 CSV
     if years_data1:
         processed_data1, net_changes1, years1 = process_cost_change_data(years_data1, name_base, name_comp1)
         if processed_data1:
+            df_rows = []
+            for i, year in enumerate(years1):
+                for cat, data in processed_data1.items():
+                    if i < len(data['changes']):
+                        df_rows.append({
+                            'case': f'{name_base_plot} → {name_comp1_plot}',
+                            'year': year,
+                            'category': cat,
+                            'cost_saving_Billion_CNY': round(data['changes'][i]/1e9, 4)
+                        })
+            df_save = pd.DataFrame(df_rows)
+            save_path = output_dir / 'data' / f'cost_savings_case1_vs_case2.csv'
+            df_save.to_csv(save_path, index=False)
             draw_single_cost_change_plot(ax1, processed_data1, net_changes1, years1, name_base_plot, name_comp1_plot)
             handles, labels = ax1.get_legend_handles_labels()
             all_handles.extend(handles)
             all_labels.extend(labels)
 
+    # 保存 Case 1 → Case 3 的数据到 CSV
     if years_data2:
         processed_data2, net_changes2, years2 = process_cost_change_data(years_data2, name_base, name_comp2)
         if processed_data2:
+            df_rows = []
+            for i, year in enumerate(years2):
+                for cat, data in processed_data2.items():
+                    if i < len(data['changes']):
+                        df_rows.append({
+                            'case': f'{name_base_plot} → {name_comp2_plot}',
+                            'year': year,
+                            'category': cat,
+                            'cost_saving_Billion_CNY': round(data['changes'][i]/1e9, 4)
+                        })
+            df_save = pd.DataFrame(df_rows)
+            save_path = output_dir / 'data' / f'cost_savings_case1_vs_case3.csv'
+            df_save.to_csv(save_path, index=False)
             draw_single_cost_change_plot(ax2, processed_data2, net_changes2, years2, name_base_plot, name_comp2_plot)
             handles, labels = ax2.get_legend_handles_labels()
             all_handles.extend(handles)

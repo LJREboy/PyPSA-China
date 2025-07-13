@@ -72,8 +72,8 @@ def process_products(days):
         "relationship_matrix": relationship_matrix,
     }
     # 根据当前优化的年份修改负荷
-    if snakemake.wildcards.planning_horizons in snakemake.config['demand_ratio']['Loadshedding'].keys():
-        demand_ratio = snakemake.config['demand_ratio']['Loadshedding'][snakemake.wildcards.planning_horizons]
+    if snakemake.wildcards.planning_horizons in snakemake.config['demand_ratio']['linear2050_2'].keys():
+        demand_ratio = snakemake.config['demand_ratio']['linear2050_2'][snakemake.wildcards.planning_horizons]
 
         # 将产品的年需求量乘以对应的比例
         products["yearly_demand"] = [demand * demand_ratio for demand in products["yearly_demand"]]

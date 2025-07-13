@@ -1,6 +1,5 @@
 ```mermaid
 graph LR;
-
     subgraph A [上游: 能源与原材料]
         A1[原煤];
         A2[原油];

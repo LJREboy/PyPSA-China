@@ -49,7 +49,7 @@ demand_ratio: # 设置不同年份的负荷相对2020年的倍率
     '2050': 2.0
     '2055': 2.16
     '2060': 2.33
-  Loadshedding:
+  linear2050_2:
     '2020': 1.0
     '2025': 1.16
     '2030': 1.33
@@ -62,7 +62,7 @@ demand_ratio: # 设置不同年份的负荷相对2020年的倍率
   
 scenario:
   line_limits: [ 'opt' ]
-  pathway: ['Loadshedding']
+  pathway: ['linear2050_2']
   topology: "current+Neighbor" # "current" or "FCG" or "current+FCG" or "current+Neighbor"
   planning_horizons:
     # - 2025
@@ -92,7 +92,7 @@ scenario:
       '2050': 1.0
       '2055': 1.0
       '2060': 1.0
-    Loadshedding:
+    linear2050_2:
       '2020': 0.2
       '2025': 0.4
       '2030': 0.6
