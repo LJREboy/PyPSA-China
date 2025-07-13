@@ -2,7 +2,7 @@
 #
 # SPDX-License-Identifier: CC0-1.0
 
-version: 0710.4H.4
+version: 0711.4H.10.3
 logging_level: INFO
 foresight: "myopic"
 
@@ -27,20 +27,50 @@ aluminum_convergence_tolerance: 0.01
 
 # LS parameters
 products_load_shedding: True
-LS_scenario: 3  # 切负荷问题场景编号: 1:基准情况；2：简单切负荷；3：考虑产业链协同的切负荷
-
+LS_scenario: 3  # 网荷互动场景编号: 1:基准情况；2：简单切负荷；3：考虑产业链协同的切负荷
+demand_ratio: # 设置不同年份的负荷相对2020年的倍率
+  linear2050:
+    '2020': 1.0
+    '2025': 1.16
+    '2030': 1.33
+    '2035': 1.5
+    '2040': 1.66
+    '2045': 1.83
+    '2050': 2.0
+    '2055': 2.16
+    '2060': 2.33
+  linear2060:
+    '2020': 1.0
+    '2025': 1.16
+    '2030': 1.33
+    '2035': 1.5
+    '2040': 1.66
+    '2045': 1.83
+    '2050': 2.0
+    '2055': 2.16
+    '2060': 2.33
+  Loadshedding:
+    '2020': 1.0
+    '2025': 1.16
+    '2030': 1.33
+    '2035': 1.5
+    '2040': 1.66
+    '2045': 1.83
+    '2050': 2.0
+    '2055': 2.16
+    '2060': 2.33
+  
 scenario:
   line_limits: [ 'opt' ]
-  pathway: ['allreduction']
+  pathway: ['Loadshedding']
   topology: "current+Neighbor" # "current" or "FCG" or "current+FCG" or "current+Neighbor"
   planning_horizons:
-    - 2020
-    - 2025
-    - 2030
-    - 2035
-    - 2040
-    - 2045
-    - 2050
+    # - 2025
+    # - 2030
+    # - 2035
+    # - 2040
+    # - 2045
+    # - 2050
   co2_reduction:
     linear2060:
       '2020': -1.
@@ -62,11 +92,11 @@ scenario:
       '2050': 1.0
       '2055': 1.0
       '2060': 1.0
-    allreduction:
-      '2020': 0.8
-      '2025': 0.9
-      '2030': 1.0
-      '2035': 1.0
+    Loadshedding:
+      '2020': 0.2
+      '2025': 0.4
+      '2030': 0.6
+      '2035': 0.8
       '2040': 1.0
       '2045': 1.0
       '2050': 1.0

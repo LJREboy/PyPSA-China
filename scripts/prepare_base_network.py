@@ -72,10 +72,14 @@ def process_products(days):
         "relationship_matrix": relationship_matrix,
     }
     # 根据当前优化的年份修改负荷
-    if snakemake.wildcards.planning_horizons == '2020':
-        # 2020年产品需求量不变
-        products["yearly_demand"] = [demand for demand in products["yearly_demand"]]
+    if snakemake.wildcards.planning_horizons in snakemake.config['demand_ratio']['Loadshedding'].keys():
+        demand_ratio = snakemake.config['demand_ratio']['Loadshedding'][snakemake.wildcards.planning_horizons]
 
+        # 将产品的年需求量乘以对应的比例
+        products["yearly_demand"] = [demand * demand_ratio for demand in products["yearly_demand"]]
+    else:
+        raise ValueError(f"Planning horizon {snakemake.wildcards.planning_horizons} not found in demand_ratio configuration.")
+    
     # 价格矩阵修正为1欧元,1欧元=7.55人民币
     products["price"] = [price * 10000 / 7.55 for price in products["price"]]
  
@@ -255,7 +259,7 @@ def prepare_network(config):
                         p_min_pu=0, 
                         p_nom=products["demand"][i] * products["electricity_consumption"][i] / 24,  # 需求规模
                         p_nom_extendable=False,  # 不允许模型优化此负荷的规模
-                        marginal_cost=10000 / 7.55 # 切负荷成本设为平均成本10000元/MWh，折算为10000/7.55=1324.5欧元/MWh
+                        marginal_cost=1324.5 # 切负荷成本设为平均成本10000元/MWh，折算为10000/7.55=1324.5欧元/MWh
                     )
                     network.add("Load",
                         f"{single_province} {material} industrial load",
@@ -329,7 +333,7 @@ def prepare_network(config):
                             # p_nom为每个时段的功率需求，时段能量需求为日总用能除每个时段的长度（24/resolution），由于p_nom是输入功率，因此还需要再除以时间分辨率
                             # 故最终p_nom为产品的日总能量需求除以24小时
                             "p_nom": products["electricity_consumption"][j] * products["demand"][j] / 24,  
-                            "p_max_pu": 1.0,#products['excess_rate'][j],  # 最大出力比例
+                            "p_max_pu": products['excess_rate'][j],  # 最大出力比例
                             "p_min_pu": 0.0,  # 最小出力比例
                             "p_nom_extendable": False,  
                         }
@@ -363,8 +367,8 @@ def prepare_network(config):
                         f"{single_province} {material} industrial load shedding",  # 使用省份前缀命名产品负荷
                         bus = product_bus_name,
                         carrier=f"{material} products",  # carrier名称即为产品名称
-                        p_max_pu = demand_series,  
-                        p_min_pu = 0,  
+                        p_max_pu = 0.2*demand_series,
+                        p_min_pu = 0,
                         p_nom = products["demand"][i] * products["net_demand_rate"][i],  # 需求规模
                         p_nom_extendable = False,  # 允许模型优化此负荷的规模
                         marginal_cost = products["price"][i] / freq_hours # 切负荷成本（欧元）

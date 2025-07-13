@@ -38,8 +38,6 @@ technologies, and handles data aggregation and visualization.
 
 import os
 import logging
-
-from numpy import NAN
 from _helpers import configure_logging
 
 import pandas as pd
@@ -138,9 +136,6 @@ preferred_order = pd.Index(
         "battery storage",
         "hot water storage",
         "hydrogen storage",
-        "aluminum",
-        "aluminum smelter",
-        "aluminum storage",
     ]
 )
  # Function to safely get colors for technologies, assigning defaults if missing
@@ -188,10 +183,6 @@ def plot_costs(infn, config, fn=None):
 
     # Rename technologies for consistent plotting
     df = df.groupby(df.index.map(rename_techs)).sum()
-    
-    # Filter out aluminum if add_aluminum is False
-    if not config.get("add_aluminum", False):
-        df = df[~df.index.str.contains("aluminum", case=False, na=False)]
 
     # Remove technologies with costs below threshold
     to_drop = df.index[df.max(axis=1) < config['plotting']['costs_plots_threshold']]
@@ -213,12 +204,8 @@ def plot_costs(infn, config, fn=None):
     fig, ax = plt.subplots()
     fig.set_size_inches((12,8))
 
-    # Filter out technologies that don't have color configuration
-    available_colors = [i for i in new_index if i in config['plotting']['tech_colors']]
-    df_filtered = df.loc[available_colors, new_columns]
-    
     # Plot stacked bars
-    df_filtered.T.plot(
+    df.loc[new_index,new_columns].T.plot(
         kind="bar",
         ax=ax,
         stacked=True,
@@ -267,10 +254,6 @@ def plot_energy(infn, config, fn=None):
 
     # Rename technologies for consistent plotting
     df = df.groupby(df.index.map(rename_techs)).sum()
-    
-    # Filter out aluminum if add_aluminum is False
-    if not config.get("add_aluminum", False):
-        df = df[~df.index.str.contains("aluminum", case=False, na=False)]
 
     # Remove technologies with energy below threshold
     to_drop = df.index[df.abs().max(axis=1) < config['plotting']['energy_threshold']]
@@ -281,7 +264,7 @@ def plot_energy(infn, config, fn=None):
     logger.debug(df.loc[to_drop])
     df = df.drop(to_drop)
 
-    logger.info(f"Total energy of {round(df.sum().iloc[0])} TWh/a")
+    logger.info(f"Total energy of {round(df.sum()[0])} TWh/a")
 
     # Reorder technologies according to preferred order
     new_index = preferred_order.intersection(df.index).append(
@@ -295,14 +278,10 @@ def plot_energy(infn, config, fn=None):
     fig, ax = plt.subplots()
     fig.set_size_inches((12,8))
 
-    # Filter out technologies that don't have color configuration
-    available_colors = [i for i in new_index if i in config['plotting']['tech_colors']]
-    df_filtered = df.loc[available_colors, new_columns]
-    
-    logger.debug(df_filtered)
+    logger.debug(df.loc[new_index, new_columns])
 
     # Plot stacked bars
-    df_filtered.T.plot(
+    df.loc[new_index,new_columns].T.plot(
         kind="bar",
         ax=ax,
         stacked=True,
@@ -355,4 +334,3 @@ if __name__ == "__main__":
             raise RuntimeError(f"plotting function for {summary} has not been defined")
         func(os.path.join(paths[0], f"{summary}.csv"), config, out[summary_i])
         summary_i = summary_i + 1
-
